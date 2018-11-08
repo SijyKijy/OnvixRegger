@@ -84,7 +84,7 @@ namespace OnvixRegger
             {
                 try
                 {
-                    var site = await client.GetAsync($"https://{Settings.BaseSite}/onvix/code.php").Result.Content.ReadAsStringAsync();
+                    var site = await client.GetAsync($"{Settings.BaseSite}/onvix/code.php").Result.Content.ReadAsStringAsync();
 
                     if (site.ToLower().Contains("nothing") || site.ToLower().Contains("error"))
                     {

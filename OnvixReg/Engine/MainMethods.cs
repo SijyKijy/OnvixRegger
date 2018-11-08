@@ -68,7 +68,7 @@ namespace OnvixRegger.Engine
             {
                 try
                 {
-                    string result = await client.GetAsync($"https://{Settings.BaseSite}/onvix/urls.php").Result.Content.ReadAsStringAsync();
+                    string result = await client.GetAsync($"{Settings.BaseSite}/onvix/urls.php").Result.Content.ReadAsStringAsync();
 
                     return result.Split(';').ToList();
                 }
