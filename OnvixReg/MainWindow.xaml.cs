@@ -36,7 +36,7 @@ namespace OnvixRegger
         /// </summary>
         private async void RunAsync()
         {
-            if(await CheckUrls())
+            if(CheckUrls())
             {
                 await GetCodes();
 
@@ -111,6 +111,7 @@ namespace OnvixRegger
         /// </summary>
         private void Registration()
         {
+            #region Проверка на заполнение полей данный
             if (Login.Text == "" || Login.Text == "Login")
             {
                 MessageBox.Show("Введите логин.");
@@ -137,15 +138,23 @@ namespace OnvixRegger
                 MessageBox.Show("Введите капчу.");
                 return;
             }
+            #endregion
+
             try
             {
-                api.Onvix_Reg(Login.Text, Password.Text, Email.Text, CaptchaBox.Text, (int)CodesCount.Value, promo, url);
-                MessageBox.Show("Ок." + Environment.NewLine + "Email и пароль скопированы в буфер обмена." + Environment.NewLine + "Если не сработало, то перезапустите программу кнопкой FastReboot.");
-                Clipboard.SetText($"{Email.Text}:{Password.Text}");
+                if(api.Onvix_Reg(Login.Text, Password.Text, Email.Text, CaptchaBox.Text, (int)CodesCount.Value, promo, url))
+                {
+                    MessageBox.Show("Вы прекрасны!" + Environment.NewLine + "Email и пароль скопированы в буфер обмена.","Всё супер!",MessageBoxButton.OK,MessageBoxImage.Information);
+                    Clipboard.SetText($"{Email.Text}:{Password.Text}");
+                }
+                else
+                {
+                    MessageBox.Show("Перезапустите программу кнопкой FastReboot.","Ошибка!",MessageBoxButton.OK,MessageBoxImage.Error);
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error! " + ex.Message);
+                MessageBox.Show("Error! "+ Environment.NewLine + ex.Message);
             }
         }
 
@@ -200,9 +209,9 @@ namespace OnvixRegger
         /// <summary>
         /// Проверка и установление валидного зеркала onvix'a.
         /// </summary>
-        private async Task<bool> CheckUrls()
+        private bool CheckUrls()
         {
-            List<string> urls = await api.GetUrlsFromSite(); // Получаем список зеркал с сайта
+            List<string> urls = api.GetUrlsFromSite(); // Получаем список зеркал с сайта
 
             if (urls == null) // Если по какой-то причине не получили, берём дефолтный список
             {

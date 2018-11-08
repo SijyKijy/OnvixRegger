@@ -1,9 +1,7 @@
-﻿using System;
+﻿using Leaf.xNet;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace OnvixRegger.Engine
 {
@@ -21,23 +19,41 @@ namespace OnvixRegger.Engine
         /// <param name="codeNum">Номер кода регистрации</param>
         /// <param name="promo">Коды регистрации</param>
         /// <param name="url">Зеркало сайта</param>
-        public async void Onvix_Reg(string login, string pass, string email, string captcha, int codeNum, string[] promo, string url)
-        {       
-            using (HttpClient client = new HttpClient())
+        public bool Onvix_Reg(string login, string pass, string email, string captcha, int codeNum, string[] promo, string url)
+        {
+            using (HttpRequest client = new HttpRequest
             {
-
-                var values = new Dictionary<string, string>
+                UserAgent = "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Mobile Safari/537.36"
+            })
+            {
+                RequestParams content = new RequestParams()
                 {
-                    { "user[promo]", promo[codeNum]},
-                    { "user[name]", login},
-                    { "user[email]", email},
-                    { "user[password]", pass},
-                    { "user[captcha]", captcha}
+                    ["user[promo]"] = promo[codeNum],
+                    ["user[name]"] = login,
+                    ["user[email]"] = email,
+                    ["user[password]"] = pass,
+                    ["user[captcha]"] = captcha
                 };
 
-                var content = new FormUrlEncodedContent(values);
+                HttpResponse post = client.Post(url + "users", content);
 
-                var post = await client.PostAsync(url+"users", content);
+                content = new RequestParams()
+                {
+                    ["user[email]"] = email,
+                    ["user[password]"] = pass,
+                    ["user[remember_me]"] = "true",
+                    ["mobile"] = "true",
+                    ["redirect_to"] = "/m/"
+                };
+
+                try
+                {
+                    return client.Post(url + "users/sign_in.json", content).IsOK;
+                }
+                catch (HttpException)
+                {
+                    return false;
+                }
             }
         }
 
@@ -48,9 +64,12 @@ namespace OnvixRegger.Engine
         /// <returns>True - К сайту удалось подключиться. False - не удалось.</returns>
         public bool CheckSiteOnUrl(string url)
         {
-            using (HttpClient client = new HttpClient())
+            using (HttpRequest client = new HttpRequest
             {
-                if (client.GetAsync(url).Result.StatusCode == HttpStatusCode.OK)
+                UserAgent = "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Mobile Safari/537.36"
+            })
+            {
+                if (client.Get(url).StatusCode == HttpStatusCode.OK)
                 {
                     return true;
                 }
@@ -62,13 +81,15 @@ namespace OnvixRegger.Engine
         /// Получить зеркала сайта Onvix
         /// </summary>
         /// <returns>Список зеркал</returns>
-        public async Task<List<string>> GetUrlsFromSite()
+        public List<string> GetUrlsFromSite()
         {
-            using (HttpClient client = new HttpClient())
+            using (HttpRequest client = new HttpRequest
             {
+                UserAgent = "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Mobile Safari/537.36"
+            })
                 try
                 {
-                    string result = await client.GetAsync($"{Settings.BaseSite}/onvix/urls.php").Result.Content.ReadAsStringAsync();
+                    string result = client.Get($"{Settings.BaseSite}/onvix/urls.php").ToString();
 
                     return result.Split(';').ToList();
                 }
@@ -76,7 +97,6 @@ namespace OnvixRegger.Engine
                 {
                     return null;
                 }
-            }
         }
 
         /// <summary>
@@ -91,4 +111,5 @@ namespace OnvixRegger.Engine
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
+
 }
