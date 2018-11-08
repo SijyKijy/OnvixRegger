@@ -2,6 +2,6 @@
 {
     static class Settings
     {
-        public static string BaseSite { get; } = "";
+        public static string BaseSite { get; } = " ";
     }
 }
